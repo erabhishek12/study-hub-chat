@@ -2,14 +2,8 @@
  * ============================================
  * STUDY HUB - Chat System
  * ============================================
- * Part 1: Core Chat Functionality
- * 
- * Features:
- * - Real-time messaging
- * - Message sending with validation
- * - Message receiving & display
- * - User status tracking
- * - Cooldown management
+ * Core Functionality, Rendering, Images, 
+ * Pinned Messages & UI
  * ============================================
  */
 
@@ -49,7 +43,8 @@ import {
     isMuted,
     isBanned,
     getMuteEndTime,
-    isAdmin
+    isAdmin,
+    showToast
 } from './auth.js';
 
 import {
@@ -57,8 +52,6 @@ import {
     FILTER_RESULT,
     FILTER_CONFIG
 } from './filter.js';
-
-import { showToast } from './auth.js';
 
 // ============================================
 // CHAT CONFIGURATION
@@ -114,13 +107,15 @@ let chatState = {
 let elements = {};
 
 // ============================================
-// CHAT MANAGER CLASS
+// CHAT MANAGER CLASS (CORE)
 // ============================================
 class ChatManager {
     constructor() {
         this.state = chatState;
         this.elements = elements;
         this.listeners = [];
+        // Helper to check for URLs warning state
+        this.urlWarningShown = false; 
     }
     
     /**
@@ -1194,67 +1189,7 @@ class ChatManager {
 const chatManager = new ChatManager();
 
 // ============================================
-// EXPORTS FOR PART 1
-// ============================================
-export {
-    ChatManager,
-    chatManager,
-    CHAT_CONFIG,
-    chatState,
-    elements
-};
-
-console.log('💬 Chat System (Part 1) - Core functionality loaded');
-
-/**
- * ============================================
- * STUDY HUB - Chat System
- * ============================================
- * Part 2: Message Rendering, Images, Pinned Messages
- * 
- * Features:
- * - Message bubble rendering
- * - Image upload & display
- * - Pinned messages
- * - Scroll management
- * - Lightbox for images
- * ============================================
- */
-
-import {
-    db,
-    storage,
-    collection,
-    doc,
-    getDocs,
-    query,
-    where,
-    orderBy,
-    limit,
-    onSnapshot,
-    ref,
-    uploadBytesResumable,
-    getDownloadURL,
-    COLLECTIONS,
-    formatTimestamp,
-    timeAgo
-} from './firebase-config.js';
-
-import {
-    getCurrentUser,
-    getCurrentUserData,
-    isAdmin
-} from './auth.js';
-
-import {
-    chatManager,
-    CHAT_CONFIG,
-    chatState,
-    elements
-} from './chat.js';
-
-// ============================================
-// EXTEND CHAT MANAGER WITH PART 2 METHODS
+// EXTEND CHAT MANAGER WITH UI/RENDERING METHODS
 // ============================================
 
 /**
@@ -2433,6 +2368,10 @@ export {
     // Configuration
     CHAT_CONFIG,
     
+    // State
+    chatState,
+    elements,
+
     // Convenience functions
     sendChatMessage,
     getChatMessages,
@@ -2452,4 +2391,4 @@ if (typeof window !== 'undefined') {
     };
 }
 
-console.log('💬 Chat System (Part 2) - Rendering & UI loaded');
+console.log('💬 Chat System - Fully Loaded');
