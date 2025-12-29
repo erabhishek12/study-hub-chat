@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Study Hub - Your Profile">
+    <meta name="theme-color" content="#e0e5ec">
+    
+    <!-- Prevent caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    
+    <title>My Profile - Study Hub</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Profile Page Styles -->
+    <style>
+        /* Prevent FOUC */
+        html:not([data-theme]) {
+            visibility: hidden;
+        }
+        html[data-theme] {
+            visibility: visible;
+        }
+        
+        /* Profile page layout */
+        .profile-wrapper {
+            min-height: 100vh;
+            background: var(--bg-primary);
+        }
+        
+        /* Profile Header */
+        .profile-header {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, #764ba2 100%);
+            padding: var(--space-xl) var(--space-lg);
+            padding-top: calc(var(--header-height) + var(--space-xl));
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        .profile-header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Profile Avatar */
+        .profile-avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .profile-avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            background: var(--bg-tertiary);
+        }
+        
+        .profile-avatar.male {
+            border-color: var(--male-color);
+        }
+        
+        .profile-avatar.female {
+            border-color: var(--female-color);
+        }
+        
+        .profile-avatar.other {
+            border-color: var(--other-color);
+        }
+        
+        .profile-avatar-edit {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 44px;
+            height: 44px;
+            background: white;
+            color: var(--accent-primary);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all var(--transition-normal);
+        }
+        
+        .profile-avatar-edit:hover {
+            transform: scale(1.1);
+            background: var(--accent-primary);
+            color: white;
+        }
+        
+        .profile-avatar-edit.loading {
+            pointer-events: none;
+        }
+        
+        .profile-avatar-edit.loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .profile-avatar-edit.loading span {
+            display: none;
+        }
+        
+        /* Hidden file input */
+        #profilePhotoInput {
+            display: none;
+        }
+        
+        .profile-name {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .profile-username {
+            font-size: var(--font-size-base);
+            opacity: 0.9;
+            margin-bottom: var(--space-md);
+        }
+        
+        .profile-badges {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+        
+        .profile-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: var(--space-xs) var(--space-md);
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-sm);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Profile Content */
+        .profile-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: var(--space-xl) var(--space-lg);
+            margin-top: -40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Profile Card */
+        .profile-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--neu-shadow-xl);
+            overflow: hidden;
+            margin-bottom: var(--space-xl);
+        }
+        
+        .profile-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--divider-color);
+        }
+        
+        .profile-card-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .profile-card-title-icon {
+            font-size: var(--font-size-xl);
+        }
+        
+        .profile-card-body {
+            padding: var(--space-lg);
+        }
+        
+        /* Profile Info Grid */
+        .profile-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+        }
+        
+        .profile-info-item {
+            padding: var(--space-md);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+        
+        .profile-info-label {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .profile-info-value {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-medium);
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+        
+        .profile-info-value.editable {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        /* Editable Field */
+        .editable-field {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            flex: 1;
+        }
+        
+        .editable-field input {
+            flex: 1;
+            padding: var(--space-sm) var(--space-md);
+            background: var(--bg-primary);
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-base);
+            color: var(--text-primary);
+            box-shadow: var(--neu-inset-sm);
+        }
+        
+        .editable-field input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        
+        .editable-field input:disabled {
+            background: transparent;
+            box-shadow: none;
+            border: none;
+            padding-left: 0;
+        }
+        
+        .edit-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--neu-shadow-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-base);
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+        
+        .edit-btn:hover {
+            box-shadow: var(--neu-shadow-md);
+            color: var(--accent-primary);
+        }
+        
+        .edit-btn.save {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 2px 8px rgba(46, 213, 115, 0.4);
+        }
+        
+        .edit-btn.cancel {
+            background: var(--bg-tertiary);
+        }
+        
+        /* Profile Stats */
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+        }
+        
+        @media (max-width: 480px) {
+            .profile-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .profile-stat {
+            text-align: center;
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+        
+        .profile-stat-value {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--accent-primary);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .profile-stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+        
+        /* Security Section */
+        .security-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .security-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .security-item-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .security-item-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-primary-light);
+            color: var(--accent-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .security-item-text h4 {
+            margin: 0 0 var(--space-xs);
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-semibold);
+        }
+        
+        .security-item-text p {
+            margin: 0;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+        
+        /* Privacy Notice */
+        .privacy-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            background: var(--info-light);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--info);
+        }
+        
+        .privacy-notice-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .privacy-notice-text {
+            flex: 1;
+        }
+        
+        .privacy-notice-text h4 {
+            margin: 0 0 var(--space-xs);
+            color: var(--info);
+            font-size: var(--font-size-base);
+        }
+        
+        .privacy-notice-text p {
+            margin: 0;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+        
+        /* Action Buttons */
+        .profile-actions {
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+        }
+        
+        .profile-actions .neu-button {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        /* Back Button */
+        .back-button {
+            position: fixed;
+            top: calc(var(--space-lg) + 10px);
+            left: var(--space-lg);
+            z-index: 100;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: var(--radius-full);
+            color: white;
+            font-size: var(--font-size-xl);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-3px);
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle-fixed {
+            position: fixed;
+            top: calc(var(--space-lg) + 10px);
+            right: var(--space-lg);
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .theme-toggle-fixed:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Image Crop Modal */
+        .crop-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--overlay-bg);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-lg);
+        }
+        
+        .crop-modal.active {
+            display: flex;
+        }
+        
+        .crop-modal-content {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--neu-shadow-xl);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+        }
+        
+        .crop-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--divider-color);
+        }
+        
+        .crop-modal-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            margin: 0;
+        }
+        
+        .crop-modal-close {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-size: var(--font-size-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+        
+        .crop-modal-close:hover {
+            background: var(--error-light);
+            color: var(--error);
+        }
+        
+        .crop-modal-body {
+            padding: var(--space-lg);
+        }
+        
+        .crop-preview-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: var(--radius-lg);
+            background: var(--bg-tertiary);
+        }
+        
+        .crop-preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .crop-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .crop-circle {
+            width: 80%;
+            height: 80%;
+            border: 3px dashed rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        }
+        
+        .crop-info {
+            text-align: center;
+            margin-top: var(--space-md);
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+        
+        .crop-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            border-top: 1px solid var(--divider-color);
+        }
+        
+        /* Loading overlay */
+        .profile-loading {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-lg);
+            z-index: 9999;
+        }
+        
+        .profile-loading.hidden {
+            display: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .profile-header {
+                padding: var(--space-lg);
+                padding-top: calc(var(--header-height) + var(--space-lg));
+            }
+            
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .profile-avatar-edit {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            
+            .profile-name {
+                font-size: var(--font-size-xl);
+            }
+            
+            .profile-content {
+                padding: var(--space-lg) var(--space-md);
+                margin-top: -30px;
+            }
+            
+            .profile-card-header,
+            .profile-card-body {
+                padding: var(--space-md);
+            }
+            
+            .profile-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .back-button,
+            .theme-toggle-fixed {
+                top: var(--space-md);
+            }
+            
+            .back-button {
+                left: var(--space-md);
+            }
+            
+            .theme-toggle-fixed {
+                right: var(--space-md);
+            }
+            
+            .security-item {
+                flex-direction: column;
+                text-align: center;
+                gap: var(--space-md);
+            }
+            
+            .security-item-info {
+                flex-direction: column;
+            }
+            
+            .profile-actions {
+                flex-direction: column;
+            }
+            
+            .profile-actions .neu-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading State -->
+    <div class="profile-loading" id="profileLoading">
+        <div class="spinner"></div>
+        <p class="text-secondary">Loading profile...</p>
+    </div>
+    
+    <!-- Back Button -->
+    <a href="index.html" class="back-button" title="Back to Chat">
+        ←
+    </a>
+    
+    <!-- Theme Toggle -->
+    <button class="theme-toggle theme-toggle-fixed neu-icon-button" 
+            aria-label="Toggle theme" 
+            title="Toggle theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+    </button>
+    
+    <!-- Main Profile Wrapper -->
+    <div class="profile-wrapper">
+        <!-- Profile Header -->
+        <header class="profile-header">
+            <div class="profile-header-content">
+                <!-- Avatar with Edit -->
+                <div class="profile-avatar-container">
+                    <img 
+                        src="" 
+                        alt="Profile Picture" 
+                        class="profile-avatar" 
+                        id="profileAvatar"
+                    >
+                    <button 
+                        class="profile-avatar-edit" 
+                        id="changePhotoBtn"
+                        title="Change profile picture"
+                        type="button"
+                    >
+                        <span>📷</span>
+                    </button>
+                    <input 
+                        type="file" 
+                        id="profilePhotoInput" 
+                        accept="image/jpeg,image/png,image/webp"
+                    >
+                </div>
+                
+                <!-- Name & Username -->
+                <h1 class="profile-name" id="profileDisplayNameHeader">Loading...</h1>
+                <p class="profile-username" id="profileUsernameHeader">@username</p>
+                
+                <!-- Badges -->
+                <div class="profile-badges">
+                    <span class="profile-badge" id="profileRoleBadge">
+                        <span>👤</span>
+                        <span>Member</span>
+                    </span>
+                    <span class="profile-badge" id="profileStatusBadge">
+                        <span>✅</span>
+                        <span>Active</span>
+                    </span>
+                    <span class="profile-badge" id="profileGenderBadge">
+                        <span>🧑</span>
+                        <span>-</span>
+                    </span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Profile Content -->
+        <main class="profile-content">
+            <!-- Privacy Notice -->
+            <div class="privacy-notice mb-xl">
+                <span class="privacy-notice-icon">🔒</span>
+                <div class="privacy-notice-text">
+                    <h4>Your Profile is Private</h4>
+                    <p>Only you can see your complete profile information. Other users can only see your display name and avatar in the chat.</p>
+                </div>
+            </div>
+            
+            <!-- Account Stats -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2 class="profile-card-title">
+                        <span class="profile-card-title-icon">📊</span>
+                        Account Statistics
+                    </h2>
+                </div>
+                <div class="profile-card-body">
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <div class="profile-stat-value" id="profileTotalMessages">0</div>
+                            <div class="profile-stat-label">Messages Sent</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="profile-stat-value" id="profileWarnings">0</div>
+                            <div class="profile-stat-label">Warnings</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="profile-stat-value" id="profileDaysActive">0</div>
+                            <div class="profile-stat-label">Days Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Personal Information -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2 class="profile-card-title">
+                        <span class="profile-card-title-icon">👤</span>
+                        Personal Information
+                    </h2>
+                </div>
+                <div class="profile-card-body">
+                    <div class="profile-info-grid">
+                        <!-- Display Name (Editable) -->
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">
+                                <span>✨</span> Display Name
+                            </div>
+                            <div class="profile-info-value editable">
+                                <div class="editable-field">
+                                    <input 
+                                        type="text" 
+                                        id="profileDisplayName" 
+                                        disabled
+                                        maxlength="50"
+                                    >
+                                    <button 
+                                        class="edit-btn" 
+                                        id="editDisplayNameBtn"
+                                        title="Edit display name"
+                                        type="button"
+                                    >
+                                        ✏️
+                                    </button>
+                                    <button 
+                                        class="edit-btn save" 
+                                        id="saveDisplayNameBtn"
+                                        title="Save changes"
+                                        type="button"
+                                        style="display: none;"
+                                    >
+                                        ✓
+                                    </button>
+                                    <button 
+                                        class="edit-btn cancel" 
+                                        id="cancelDisplayNameBtn"
+                                        title="Cancel"
+                                        type="button"
+                                        style="display: none;"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Username (Read-only) -->
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">
+                                <span>@</span> Username
+                            </div>
+                            <div class="profile-info-value">
+                                <input 
+                                    type="text" 
+                                    id="profileUsername" 
+                                    class="editable-field"
+                                    disabled
+                                    readonly
+                                    style="background: transparent; box-shadow: none; border: none; padding-left: 0;"
+                                >
+                            </div>
+                        </div>
+                        
+                        <!-- Email (Read-only) -->
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">
+                                <span>📧</span> Email Address
+                            </div>
+                            <div class="profile-info-value">
+                                <input 
+                                    type="email" 
+                                    id="profileEmail" 
+                                    disabled
+                                    readonly
+                                    style="background: transparent; box-shadow: none; border: none; padding-left: 0; width: 100%;"
+                                >
+                            </div>
+                        </div>
+                        
+                        <!-- Mobile (Read-only) -->
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">
+                                <span>📱</span> Mobile Number
+                            </div>
+                            <div class="profile-info-value">
+                                <input 
+                                    type="tel" 
+                                    id="profileMobile" 
+                                    disabled
+                                    readonly
+                                    style="background: transparent; box-shadow: none; border: none; padding-left: 0;"
+                                >
+                            </div>
+                        </div>
+                        
+                        <!-- Gender (Read-only) -->
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">
+                                <span>🧑</span> Gender
+                            </div>
+                            <div class="profile-info-value">
+                                <input 
+                                    type="text" 
+                                    id="profileGender" 
+                                    disabled
+                                    readonly
+                                    style="background: transparent; box-shadow: none; border: none; padding-left: 0;"
+                                >
+                            </div>
+                        </div>
+                        
+                        <!-- Member Since (Read-only) -->
+                        <div class="profile-info-item">
+                            <div class="profile-info-label">
+                                <span>📅</span> Member Since
+                            </div>
+                            <div class="profile-info-value">
+                                <input 
+                                    type="text" 
+                                    id="profileCreatedAt" 
+                                    disabled
+                                    readonly
+                                    style="background: transparent; box-shadow: none; border: none; padding-left: 0;"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Settings -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2 class="profile-card-title">
+                        <span class="profile-card-title-icon">🔐</span>
+                        Security Settings
+                    </h2>
+                </div>
+                <div class="profile-card-body">
+                    <!-- Change Password -->
+                    <div class="security-item">
+                        <div class="security-item-info">
+                            <div class="security-item-icon">🔑</div>
+                            <div class="security-item-text">
+                                <h4>Password</h4>
+                                <p>Change your account password</p>
+                            </div>
+                        </div>
+                        <button class="neu-button neu-button-sm" id="changePasswordBtn" type="button">
+                            Change Password
+                        </button>
+                    </div>
+                    
+                    <!-- Last Active -->
+                    <div class="security-item">
+                        <div class="security-item-info">
+                            <div class="security-item-icon">🕐</div>
+                            <div class="security-item-text">
+                                <h4>Last Activity</h4>
+                                <p id="profileLastActive">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Account Actions -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2 class="profile-card-title">
+                        <span class="profile-card-title-icon">⚙️</span>
+                        Account Actions
+                    </h2>
+                </div>
+                <div class="profile-card-body">
+                    <div class="profile-actions">
+                        <a href="index.html" class="neu-button">
+                            <span>💬</span>
+                            <span>Back to Chat</span>
+                        </a>
+                        <button class="neu-button neu-button-danger logout-btn" type="button">
+                            <span>🚪</span>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Image Crop Modal -->
+    <div class="crop-modal" id="cropModal">
+        <div class="crop-modal-content">
+            <div class="crop-modal-header">
+                <h3 class="crop-modal-title">Crop Profile Picture</h3>
+                <button class="crop-modal-close" id="cropModalClose" type="button">✕</button>
+            </div>
+            <div class="crop-modal-body">
+                <div class="crop-preview-container">
+                    <img src="" alt="Crop preview" class="crop-preview-image" id="cropPreviewImage">
+                    <div class="crop-overlay">
+                        <div class="crop-circle"></div>
+                    </div>
+                </div>
+                <p class="crop-info">Image will be cropped to a square and resized.</p>
+            </div>
+            <div class="crop-modal-footer">
+                <button class="neu-button" id="cropCancelBtn" type="button">Cancel</button>
+                <button class="neu-button neu-button-primary" id="cropConfirmBtn" type="button">
+                    <span>✓</span>
+                    <span>Use This Photo</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+    
+    <!-- Scripts -->
+    <script type="module">
+        import { 
+            auth, 
+            db,
+            doc,
+            updateDoc,
+            onAuthStateChanged,
+            serverTimestamp
+        } from './js/firebase-config.js';
+        
+        import { 
+            getCurrentUser,
+            getCurrentUserData,
+            refreshUserData,
+            updateUserProfile,
+            updateProfilePicture,
+            initLogoutButton,
+            showToast,
+            showChangePasswordModal
+        } from './js/auth.js';
+        
+        import './js/theme.js';
+        
+        // Page elements
+        const profileLoading = document.getElementById('profileLoading');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const changePhotoBtn = document.getElementById('changePhotoBtn');
+        const profilePhotoInput = document.getElementById('profilePhotoInput');
+        const cropModal = document.getElementById('cropModal');
+        const cropPreviewImage = document.getElementById('cropPreviewImage');
+        const cropConfirmBtn = document.getElementById('cropConfirmBtn');
+        const cropCancelBtn = document.getElementById('cropCancelBtn');
+        const cropModalClose = document.getElementById('cropModalClose');
+        
+        let selectedImageFile = null;
+        let currentUserData = null;
+        
+        // Auth state listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    // Get fresh user data
+                    await refreshUserData();
+                    currentUserData = getCurrentUserData();
+                    
+                    if (currentUserData) {
+                        populateProfile(currentUserData);
+                        profileLoading.classList.add('hidden');
+                    } else {
+                        showToast('Failed to load profile data', 'error');
+                        setTimeout(() => window.location.href = 'login.html', 2000);
+                    }
+                } catch (error) {
+                    console.error('Error loading profile:', error);
+                    showToast('Error loading profile', 'error');
+                }
+            } else {
+                // Not logged in, redirect
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // Populate profile with user data
+        function populateProfile(userData) {
+            // Avatar
+            const genderClass = userData.gender || '';
+            profileAvatar.src = userData.photoURL || getDefaultAvatar(userData.gender);
+            profileAvatar.className = `profile-avatar ${genderClass}`;
+            
+            // Header info
+            document.getElementById('profileDisplayNameHeader').textContent = userData.displayName || 'User';
+            document.getElementById('profileUsernameHeader').textContent = `@${userData.username || 'username'}`;
+            
+            // Badges
+            const roleBadge = document.getElementById('profileRoleBadge');
+            if (userData.role === 'admin') {
+                roleBadge.innerHTML = '<span>👑</span><span>Admin</span>';
+            } else {
+                roleBadge.innerHTML = '<span>👤</span><span>Member</span>';
+            }
+            
+            const genderIcons = { male: '👨', female: '👩', other: '🧑' };
+            const genderBadge = document.getElementById('profileGenderBadge');
+            genderBadge.innerHTML = `<span>${genderIcons[userData.gender] || '🧑'}</span><span>${capitalizeFirst(userData.gender) || '-'}</span>`;
+            
+            // Status badge
+            const statusBadge = document.getElementById('profileStatusBadge');
+            if (userData.status === 'banned') {
+                statusBadge.innerHTML = '<span>⛔</span><span>Banned</span>';
+                statusBadge.style.background = 'rgba(255, 71, 87, 0.3)';
+            } else if (isUserMuted(userData)) {
+                statusBadge.innerHTML = '<span>🔇</span><span>Muted</span>';
+                statusBadge.style.background = 'rgba(255, 165, 2, 0.3)';
+            } else {
+                statusBadge.innerHTML = '<span>✅</span><span>Active</span>';
+            }
+            
+            // Form fields
+            document.getElementById('profileDisplayName').value = userData.displayName || '';
+            document.getElementById('profileUsername').value = userData.username || '';
+            document.getElementById('profileEmail').value = userData.email || '';
+            document.getElementById('profileMobile').value = formatMobile(userData.mobile) || '';
+            document.getElementById('profileGender').value = capitalizeFirst(userData.gender) || '';
+            
+            // Created at
+            if (userData.createdAt) {
+                const date = userData.createdAt.toDate ? userData.createdAt.toDate() : new Date(userData.createdAt);
+                document.getElementById('profileCreatedAt').value = date.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                // Calculate days active
+                const daysActive = Math.floor((new Date() - date) / (1000 * 60 * 60 * 24));
+                document.getElementById('profileDaysActive').textContent = daysActive;
+            }
+            
+            // Last active
+            if (userData.lastActive) {
+                const lastActive = userData.lastActive.toDate ? userData.lastActive.toDate() : new Date(userData.lastActive);
+                document.getElementById('profileLastActive').textContent = formatRelativeTime(lastActive);
+            }
+            
+            // Stats
+            document.getElementById('profileTotalMessages').textContent = userData.totalMessages || 0;
+            document.getElementById('profileWarnings').textContent = userData.warningCount || 0;
+        }
+        
+        // Helper functions
+        function getDefaultAvatar(gender) {
+            const avatars = {
+                male: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzRBOTBEMiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
+                female: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iI0VDNDA3QSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
+                other: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzlDMjdCMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4='
+            };
+            return avatars[gender] || avatars.other;
+        }
+        
+        function capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+        
+        function formatMobile(mobile) {
+            if (!mobile) return '';
+            // Format as XXX-XXX-XXXX
+            return mobile.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+        }
+        
+        function isUserMuted(userData) {
+            if (!userData.mutedUntil) return false;
+            const muteEnd = userData.mutedUntil.toDate ? userData.mutedUntil.toDate() : new Date(userData.mutedUntil);
+            return muteEnd > new Date();
+        }
+        
+        function formatRelativeTime(date) {
+            const now = new Date();
+            const diff = now - date;
+            
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+            
+            return date.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+        
+        // ==========================================
+        // Profile Photo Change - SELECT FROM DEVICE
+        // ==========================================
+        
+        // Click on camera button to open file picker
+        changePhotoBtn.addEventListener('click', () => {
+            profilePhotoInput.click();
+        });
+        
+        // Handle file selection from device
+        profilePhotoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            
+            if (!file) return;
+            
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showToast('Please select a JPG, PNG, or WebP image', 'error');
+                profilePhotoInput.value = '';
+                return;
+            }
+            
+            // Validate file size (max 2MB)
+            const maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showToast('Image must be less than 2MB', 'error');
+                profilePhotoInput.value = '';
+                return;
+            }
+            
+            // Store selected file
+            selectedImageFile = file;
+            
+            // Show crop modal with preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                cropPreviewImage.src = event.target.result;
+                cropModal.classList.add('active');
+            };
+            reader.onerror = () => {
+                showToast('Failed to read image file', 'error');
+                profilePhotoInput.value = '';
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Crop modal close handlers
+        cropModalClose.addEventListener('click', closeCropModal);
+        cropCancelBtn.addEventListener('click', closeCropModal);
+        
+        cropModal.addEventListener('click', (e) => {
+            if (e.target === cropModal) {
+                closeCropModal();
+            }
+        });
+        
+        function closeCropModal() {
+            cropModal.classList.remove('active');
+            selectedImageFile = null;
+            profilePhotoInput.value = '';
+        }
+        
+        // Confirm crop and upload
+        cropConfirmBtn.addEventListener('click', async () => {
+            if (!selectedImageFile) {
+                showToast('No image selected', 'error');
+                return;
+            }
+            
+            // Disable button and show loading
+            cropConfirmBtn.disabled = true;
+            cropConfirmBtn.innerHTML = '<span class="spinner-circle spinner-sm"></span> Uploading...';
+            
+            try {
+                // Upload using auth module function
+                const result = await updateProfilePicture(selectedImageFile);
+                
+                if (result.success) {
+                    // Update avatar on page
+                    profileAvatar.src = result.photoURL;
+                    showToast('Profile picture updated successfully!', 'success');
+                    closeCropModal();
+                } else {
+                    showToast(result.error || 'Failed to update profile picture', 'error');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('An error occurred while uploading', 'error');
+            } finally {
+                // Reset button
+                cropConfirmBtn.disabled = false;
+                cropConfirmBtn.innerHTML = '<span>✓</span><span>Use This Photo</span>';
+            }
+        });
+        
+        // ==========================================
+        // Display Name Edit
+        // ==========================================
+        const displayNameInput = document.getElementById('profileDisplayName');
+        const editDisplayNameBtn = document.getElementById('editDisplayNameBtn');
+        const saveDisplayNameBtn = document.getElementById('saveDisplayNameBtn');
+        const cancelDisplayNameBtn = document.getElementById('cancelDisplayNameBtn');
+        let originalDisplayName = '';
+        
+        editDisplayNameBtn.addEventListener('click', () => {
+            originalDisplayName = displayNameInput.value;
+            displayNameInput.disabled = false;
+            displayNameInput.focus();
+            displayNameInput.select();
+            
+            editDisplayNameBtn.style.display = 'none';
+            saveDisplayNameBtn.style.display = 'flex';
+            cancelDisplayNameBtn.style.display = 'flex';
+        });
+        
+        cancelDisplayNameBtn.addEventListener('click', () => {
+            displayNameInput.value = originalDisplayName;
+            displayNameInput.disabled = true;
+            
+            editDisplayNameBtn.style.display = 'flex';
+            saveDisplayNameBtn.style.display = 'none';
+            cancelDisplayNameBtn.style.display = 'none';
+        });
+        
+        saveDisplayNameBtn.addEventListener('click', async () => {
+            const newName = displayNameInput.value.trim();
+            
+            if (!newName) {
+                showToast('Display name cannot be empty', 'error');
+                return;
+            }
+            
+            if (newName.length < 2) {
+                showToast('Display name must be at least 2 characters', 'error');
+                return;
+            }
+            
+            if (newName.length > 50) {
+                showToast('Display name must be less than 50 characters', 'error');
+                return;
+            }
+            
+            // Show loading
+            saveDisplayNameBtn.disabled = true;
+            saveDisplayNameBtn.innerHTML = '⏳';
+            
+            try {
+                const result = await updateUserProfile({ displayName: newName });
+                
+                if (result.success) {
+                    // Update header
+                    document.getElementById('profileDisplayNameHeader').textContent = newName;
+                    
+                    displayNameInput.disabled = true;
+                    editDisplayNameBtn.style.display = 'flex';
+                    saveDisplayNameBtn.style.display = 'none';
+                    cancelDisplayNameBtn.style.display = 'none';
+                    
+                    showToast('Display name updated!', 'success');
+                } else {
+                    showToast(result.error || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                showToast('An error occurred', 'error');
+            } finally {
+                saveDisplayNameBtn.disabled = false;
+                saveDisplayNameBtn.innerHTML = '✓';
+            }
+        });
+        
+        // Enter key to save
+        displayNameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !displayNameInput.disabled) {
+                e.preventDefault();
+                saveDisplayNameBtn.click();
+            } else if (e.key === 'Escape' && !displayNameInput.disabled) {
+                cancelDisplayNameBtn.click();
+            }
+        });
+        
+        // ==========================================
+        // Change Password
+        // ==========================================
+        document.getElementById('changePasswordBtn').addEventListener('click', () => {
+            showChangePasswordModal();
+        });
+        
+        // ==========================================
+        // Logout
+        // ==========================================
+        initLogoutButton('.logout-btn');
+    </script>
+    
+    <!-- Immediate theme application -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('studyhub_theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</body>
+</html>

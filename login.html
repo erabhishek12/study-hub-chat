@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Study Hub - Login to your account">
+    <meta name="theme-color" content="#e0e5ec">
+    
+    <!-- Prevent caching for development -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>Login - Study Hub</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Inline critical styles for faster load -->
+    <style>
+        /* Prevent FOUC */
+        html:not([data-theme]) {
+            visibility: hidden;
+        }
+        html[data-theme] {
+            visibility: visible;
+        }
+        
+        /* Login page specific styles */
+        .login-illustration {
+            font-size: 64px;
+            margin-bottom: var(--space-lg);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-lg);
+            color: var(--text-tertiary);
+            padding: var(--space-xs);
+            transition: color var(--transition-fast);
+        }
+        
+        .password-toggle:hover {
+            color: var(--text-primary);
+        }
+        
+        .login-features {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-xl);
+            margin-top: var(--space-xl);
+            flex-wrap: wrap;
+        }
+        
+        .login-feature {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        
+        .login-feature-icon {
+            font-size: var(--font-size-xl);
+        }
+        
+        .theme-toggle-fixed {
+            position: fixed;
+            top: var(--space-lg);
+            right: var(--space-lg);
+            z-index: 100;
+        }
+        
+        /* Field status styles */
+        .field-status {
+            display: none;
+            font-size: var(--font-size-sm);
+            margin-top: var(--space-xs);
+        }
+        
+        .field-status.info {
+            color: var(--info);
+        }
+        
+        .field-status.success {
+            color: var(--success);
+        }
+        
+        .field-status.error {
+            color: var(--error);
+        }
+        
+        /* Remember me styling */
+        .remember-forgot-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+        
+        .forgot-password-link {
+            font-size: var(--font-size-sm);
+            color: var(--accent-primary);
+        }
+        
+        .forgot-password-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-features {
+                flex-direction: column;
+                align-items: center;
+                gap: var(--space-md);
+            }
+            
+            .auth-card {
+                margin: var(--space-md);
+            }
+            
+            .theme-toggle-fixed {
+                top: var(--space-md);
+                right: var(--space-md);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle (Fixed Position) -->
+    <button class="theme-toggle theme-toggle-fixed neu-icon-button" 
+            aria-label="Toggle theme" 
+            title="Toggle theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+    </button>
+    
+    <!-- Main Auth Wrapper -->
+    <div class="auth-wrapper">
+        <div class="auth-container">
+            <!-- Login Card -->
+            <div class="auth-card neu-card">
+                <!-- Header -->
+                <div class="auth-header">
+                    <div class="login-illustration">📚</div>
+                    <div class="auth-logo">
+                        <span>📖</span>
+                    </div>
+                    <h1 class="auth-title">Welcome Back!</h1>
+                    <p class="auth-subtitle">Sign in to continue to Study Hub</p>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="loginForm" novalidate>
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <div class="input-icon-wrapper">
+                            <span class="input-icon">📧</span>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email"
+                                class="neu-input" 
+                                placeholder="Enter your email"
+                                autocomplete="email"
+                                required
+                            >
+                        </div>
+                        <div class="form-error" style="display: none;"></div>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <div class="input-icon-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password"
+                                class="neu-input" 
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required
+                            >
+                            <button type="button" class="password-toggle toggle-password" aria-label="Toggle password visibility">
+                                👁️
+                            </button>
+                        </div>
+                        <div class="form-error" style="display: none;"></div>
+                    </div>
+                    
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="form-group">
+                        <div class="remember-forgot-row">
+                            <label class="neu-checkbox-wrapper">
+                                <input type="checkbox" id="rememberMe" name="rememberMe">
+                                <span class="neu-checkbox"></span>
+                                <span class="neu-checkbox-label">Remember me</span>
+                            </label>
+                            <a href="#" class="forgot-password-link">Forgot password?</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="form-group">
+                        <button type="submit" class="neu-button neu-button-primary w-100">
+                            <span>🚀</span>
+                            <span>Sign In</span>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Divider -->
+                <div class="auth-divider">
+                    <span>New to Study Hub?</span>
+                </div>
+                
+                <!-- Register Link -->
+                <div class="text-center">
+                    <a href="register.html" class="neu-button w-100">
+                        <span>✨</span>
+                        <span>Create Account</span>
+                    </a>
+                </div>
+                
+                <!-- Features -->
+                <div class="login-features">
+                    <div class="login-feature">
+                        <span class="login-feature-icon">💬</span>
+                        <span>Live Doubts Chat</span>
+                    </div>
+                    <div class="login-feature">
+                        <span class="login-feature-icon">📝</span>
+                        <span>Study Resources</span>
+                    </div>
+                    <div class="login-feature">
+                        <span class="login-feature-icon">👥</span>
+                        <span>Community Support</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="auth-footer mt-lg text-center">
+                <p class="text-muted fs-sm">
+                    By signing in, you agree to our 
+                    <a href="#">Terms of Service</a> and 
+                    <a href="#">Privacy Policy</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+    
+    <!-- Page Loader (shown during auth check) -->
+    <div class="page-loader" id="pageLoader" style="display: none;">
+        <div class="spinner"></div>
+        <p class="page-loader-text">Loading...</p>
+    </div>
+    
+    <!-- Scripts -->
+    <script type="module">
+        // Import required modules
+        import { 
+            auth, 
+            onAuthStateChanged 
+        } from './js/firebase-config.js';
+        
+        import { 
+            initLoginForm, 
+            getCurrentUser,
+            getCurrentUserData
+        } from './js/auth.js';
+        
+        import './js/theme.js';
+        
+        // Check if already logged in
+        onAuthStateChanged(auth, async (user) => {
+            const loader = document.getElementById('pageLoader');
+            
+            if (user) {
+                // User is signed in, redirect to chat
+                loader.style.display = 'flex';
+                
+                // Small delay to allow data to load
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
+            } else {
+                // User is signed out, show login form
+                loader.style.display = 'none';
+                
+                // Initialize login form
+                initLoginForm('loginForm');
+            }
+        });
+        
+        // Check for URL parameters (e.g., reason=timeout)
+        const urlParams = new URLSearchParams(window.location.search);
+        const reason = urlParams.get('reason');
+        
+        if (reason) {
+            // Import showToast
+            import('./js/auth.js').then(({ showToast }) => {
+                switch (reason) {
+                    case 'timeout':
+                        showToast('Session expired. Please login again.', 'warning');
+                        break;
+                    case 'banned':
+                        showToast('Your account has been banned.', 'error');
+                        break;
+                    case 'data_not_found':
+                        showToast('Account data not found. Please contact support.', 'error');
+                        break;
+                    default:
+                        break;
+                }
+            });
+            
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
+    
+    <!-- Inline script for immediate theme application -->
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function() {
+            const savedTheme = localStorage.getItem('studyhub_theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</body>
+</html>

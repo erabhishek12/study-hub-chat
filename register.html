@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Study Hub - Create your account">
+    <meta name="theme-color" content="#e0e5ec">
+    
+    <!-- Prevent caching for development -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>Create Account - Study Hub</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Inline critical styles -->
+    <style>
+        /* Prevent FOUC */
+        html:not([data-theme]) {
+            visibility: hidden;
+        }
+        html[data-theme] {
+            visibility: visible;
+        }
+        
+        /* Registration page specific styles */
+        .register-wrapper {
+            min-height: 100vh;
+            padding: var(--space-xl) var(--space-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+        }
+        
+        .register-container {
+            width: 100%;
+            max-width: 560px;
+        }
+        
+        .register-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--neu-shadow-xl);
+            padding: var(--space-xl);
+        }
+        
+        .register-header {
+            text-align: center;
+            margin-bottom: var(--space-xl);
+        }
+        
+        .register-logo {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, #764ba2 100%);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            margin: 0 auto var(--space-lg);
+            box-shadow: var(--neu-shadow-md);
+        }
+        
+        .register-title {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .register-subtitle {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Progress steps */
+        .register-progress {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .progress-step {
+            width: 40px;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            transition: background var(--transition-normal);
+        }
+        
+        .progress-step.active {
+            background: var(--accent-primary);
+        }
+        
+        .progress-step.completed {
+            background: var(--success);
+        }
+        
+        /* Form sections */
+        .form-section {
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--divider-color);
+        }
+        
+        .form-section:last-of-type {
+            border-bottom: none;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .form-section-title {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .form-section-icon {
+            font-size: var(--font-size-lg);
+        }
+        
+        /* Form row for side by side inputs */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-lg);
+        }
+        
+        @media (max-width: 480px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Profile picture upload */
+        .profile-upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .profile-upload-preview {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        
+        .profile-preview-image {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            background: var(--bg-tertiary);
+            box-shadow: var(--neu-shadow-md);
+            border: 4px solid var(--bg-primary);
+        }
+        
+        .profile-preview-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-full);
+            background: var(--bg-tertiary);
+            box-shadow: var(--neu-inset-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--text-tertiary);
+        }
+        
+        .profile-upload-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            background: var(--accent-primary);
+            color: white;
+            border: 3px solid var(--bg-primary);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: var(--font-size-lg);
+            transition: transform var(--transition-fast);
+            box-shadow: var(--neu-shadow-sm);
+        }
+        
+        .profile-upload-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .profile-upload-input {
+            display: none;
+        }
+        
+        .profile-upload-info {
+            text-align: center;
+        }
+        
+        .profile-upload-info p {
+            margin: 0;
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
+        }
+        
+        .profile-remove-btn {
+            display: none;
+            margin-top: var(--space-sm);
+        }
+        
+        .profile-remove-btn.visible {
+            display: inline-flex;
+        }
+        
+        /* Gender selection */
+        .gender-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+        }
+        
+        @media (max-width: 400px) {
+            .gender-options {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .gender-option {
+            position: relative;
+        }
+        
+        .gender-option input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .gender-option-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-lg) var(--space-md);
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-shadow-sm);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 2px solid transparent;
+        }
+        
+        .gender-option-label:hover {
+            box-shadow: var(--neu-shadow-md);
+        }
+        
+        .gender-option input:checked + .gender-option-label {
+            box-shadow: var(--neu-inset-sm);
+        }
+        
+        .gender-option.male input:checked + .gender-option-label {
+            border-color: var(--male-color);
+            background: rgba(74, 144, 210, 0.1);
+        }
+        
+        .gender-option.female input:checked + .gender-option-label {
+            border-color: var(--female-color);
+            background: rgba(236, 64, 122, 0.1);
+        }
+        
+        .gender-option.other input:checked + .gender-option-label {
+            border-color: var(--other-color);
+            background: rgba(156, 39, 176, 0.1);
+        }
+        
+        .gender-icon {
+            font-size: 32px;
+        }
+        
+        .gender-text {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--text-secondary);
+        }
+        
+        .gender-option input:checked + .gender-option-label .gender-text {
+            color: var(--text-primary);
+            font-weight: var(--font-weight-semibold);
+        }
+        
+        /* Password strength */
+        .password-strength {
+            margin-top: var(--space-sm);
+        }
+        
+        .password-strength-bar-container {
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width var(--transition-normal), background var(--transition-normal);
+            border-radius: var(--radius-sm);
+        }
+        
+        .password-strength-text {
+            font-size: var(--font-size-xs);
+            margin-top: var(--space-xs);
+            text-align: right;
+        }
+        
+        /* Field status */
+        .field-status {
+            display: none;
+            font-size: var(--font-size-sm);
+            margin-top: var(--space-xs);
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .field-status.info {
+            color: var(--info);
+        }
+        
+        .field-status.success {
+            color: var(--success);
+        }
+        
+        .field-status.error {
+            color: var(--error);
+        }
+        
+        /* Password toggle */
+        .password-toggle {
+            position: absolute;
+            right: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-lg);
+            color: var(--text-tertiary);
+            padding: var(--space-xs);
+            transition: color var(--transition-fast);
+        }
+        
+        .password-toggle:hover {
+            color: var(--text-primary);
+        }
+        
+        /* Terms checkbox */
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-sm);
+        }
+        
+        .terms-checkbox .neu-checkbox {
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        
+        .terms-text {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .terms-text a {
+            color: var(--accent-primary);
+        }
+        
+        /* Theme toggle fixed */
+        .theme-toggle-fixed {
+            position: fixed;
+            top: var(--space-lg);
+            right: var(--space-lg);
+            z-index: 100;
+        }
+        
+        /* Already have account */
+        .login-link-section {
+            text-align: center;
+            margin-top: var(--space-xl);
+            padding-top: var(--space-lg);
+            border-top: 1px solid var(--divider-color);
+        }
+        
+        .login-link-section p {
+            margin: 0 0 var(--space-md);
+            color: var(--text-secondary);
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .register-wrapper {
+                padding: var(--space-md);
+            }
+            
+            .register-card {
+                padding: var(--space-lg);
+            }
+            
+            .register-title {
+                font-size: var(--font-size-xl);
+            }
+            
+            .theme-toggle-fixed {
+                top: var(--space-md);
+                right: var(--space-md);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle (Fixed Position) -->
+    <button class="theme-toggle theme-toggle-fixed neu-icon-button" 
+            aria-label="Toggle theme" 
+            title="Toggle theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+    </button>
+    
+    <!-- Main Register Wrapper -->
+    <div class="register-wrapper">
+        <div class="register-container">
+            <!-- Register Card -->
+            <div class="register-card">
+                <!-- Header -->
+                <div class="register-header">
+                    <div class="register-logo">
+                        <span>📖</span>
+                    </div>
+                    <h1 class="register-title">Create Your Account</h1>
+                    <p class="register-subtitle">Join Study Hub and start learning together</p>
+                </div>
+                
+                <!-- Progress Indicator -->
+                <div class="register-progress">
+                    <div class="progress-step active" data-step="1"></div>
+                    <div class="progress-step" data-step="2"></div>
+                    <div class="progress-step" data-step="3"></div>
+                </div>
+                
+                <!-- Registration Form -->
+                <form id="registrationForm" novalidate>
+                    <!-- Section 1: Account Info -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <span class="form-section-icon">🔐</span>
+                            Account Information
+                        </h3>
+                        
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label class="form-label required" for="email">Email Address</label>
+                            <div class="input-icon-wrapper">
+                                <span class="input-icon">📧</span>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email"
+                                    class="neu-input" 
+                                    placeholder="your.email@example.com"
+                                    autocomplete="email"
+                                    required
+                                >
+                            </div>
+                            <div class="form-error" style="display: none;"></div>
+                        </div>
+                        
+                        <!-- Password Row -->
+                        <div class="form-row">
+                            <!-- Password -->
+                            <div class="form-group">
+                                <label class="form-label required" for="password">Password</label>
+                                <div class="input-icon-wrapper">
+                                    <span class="input-icon">🔒</span>
+                                    <input 
+                                        type="password" 
+                                        id="password" 
+                                        name="password"
+                                        class="neu-input" 
+                                        placeholder="Min 8 characters"
+                                        autocomplete="new-password"
+                                        required
+                                    >
+                                    <button type="button" class="password-toggle" data-target="password" aria-label="Toggle password visibility">
+                                        👁️
+                                    </button>
+                                </div>
+                                <div class="password-strength">
+                                    <div class="password-strength-bar-container">
+                                        <div class="password-strength-bar"></div>
+                                    </div>
+                                    <div class="password-strength-text"></div>
+                                </div>
+                                <div class="form-error" style="display: none;"></div>
+                            </div>
+                            
+                            <!-- Confirm Password -->
+                            <div class="form-group">
+                                <label class="form-label required" for="confirmPassword">Confirm Password</label>
+                                <div class="input-icon-wrapper">
+                                    <span class="input-icon">🔒</span>
+                                    <input 
+                                        type="password" 
+                                        id="confirmPassword" 
+                                        name="confirmPassword"
+                                        class="neu-input" 
+                                        placeholder="Confirm password"
+                                        autocomplete="new-password"
+                                        required
+                                    >
+                                    <button type="button" class="password-toggle" data-target="confirmPassword" aria-label="Toggle password visibility">
+                                        👁️
+                                    </button>
+                                </div>
+                                <div class="form-error" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 2: Profile Info -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <span class="form-section-icon">👤</span>
+                            Profile Information
+                        </h3>
+                        
+                        <!-- Profile Picture Upload -->
+                        <div class="form-group">
+                            <label class="form-label">Profile Picture</label>
+                            <div class="profile-upload-container">
+                                <div class="profile-upload-preview">
+                                    <div class="profile-preview-placeholder" id="profilePlaceholder">
+                                        👤
+                                    </div>
+                                    <img 
+                                        src="" 
+                                        alt="Profile preview" 
+                                        class="profile-preview-image" 
+                                        id="profilePreviewImage"
+                                        style="display: none;"
+                                    >
+                                    <label for="profileImage" class="profile-upload-btn" title="Upload photo">
+                                        📷
+                                    </label>
+                                    <input 
+                                        type="file" 
+                                        id="profileImage" 
+                                        name="profileImage"
+                                        class="profile-upload-input"
+                                        accept="image/jpeg,image/png,image/webp"
+                                    >
+                                </div>
+                                <div class="profile-upload-info">
+                                    <p>JPG, PNG or WebP (max 2MB)</p>
+                                    <button 
+                                        type="button" 
+                                        class="neu-button neu-button-sm neu-button-danger profile-remove-btn"
+                                        id="removeProfileImage"
+                                    >
+                                        ✕ Remove
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-error" style="display: none;"></div>
+                        </div>
+                        
+                        <!-- Name Row -->
+                        <div class="form-row">
+                            <!-- Display Name -->
+                            <div class="form-group">
+                                <label class="form-label required" for="displayName">Display Name</label>
+                                <div class="input-icon-wrapper">
+                                    <span class="input-icon">✨</span>
+                                    <input 
+                                        type="text" 
+                                        id="displayName" 
+                                        name="displayName"
+                                        class="neu-input" 
+                                        placeholder="Your full name"
+                                        autocomplete="name"
+                                        maxlength="50"
+                                        required
+                                    >
+                                </div>
+                                <div class="form-error" style="display: none;"></div>
+                            </div>
+                            
+                            <!-- Username -->
+                            <div class="form-group">
+                                <label class="form-label required" for="username">Username</label>
+                                <div class="input-icon-wrapper">
+                                    <span class="input-icon">@</span>
+                                    <input 
+                                        type="text" 
+                                        id="username" 
+                                        name="username"
+                                        class="neu-input" 
+                                        placeholder="username123"
+                                        autocomplete="username"
+                                        maxlength="20"
+                                        pattern="[a-zA-Z0-9_]+"
+                                        required
+                                    >
+                                </div>
+                                <div class="field-status" id="usernameStatus"></div>
+                                <div class="form-error" style="display: none;"></div>
+                                <div class="form-help">3-20 characters, letters, numbers, underscore</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Gender Selection -->
+                        <div class="form-group">
+                            <label class="form-label required">Gender</label>
+                            <div class="gender-options">
+                                <div class="gender-option male">
+                                    <input 
+                                        type="radio" 
+                                        id="genderMale" 
+                                        name="gender" 
+                                        value="male"
+                                        required
+                                    >
+                                    <label class="gender-option-label" for="genderMale">
+                                        <span class="gender-icon">👨</span>
+                                        <span class="gender-text">Male</span>
+                                    </label>
+                                </div>
+                                <div class="gender-option female">
+                                    <input 
+                                        type="radio" 
+                                        id="genderFemale" 
+                                        name="gender" 
+                                        value="female"
+                                    >
+                                    <label class="gender-option-label" for="genderFemale">
+                                        <span class="gender-icon">👩</span>
+                                        <span class="gender-text">Female</span>
+                                    </label>
+                                </div>
+                                <div class="gender-option other">
+                                    <input 
+                                        type="radio" 
+                                        id="genderOther" 
+                                        name="gender" 
+                                        value="other"
+                                    >
+                                    <label class="gender-option-label" for="genderOther">
+                                        <span class="gender-icon">🧑</span>
+                                        <span class="gender-text">Other</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-error" id="genderError" style="display: none;"></div>
+                        </div>
+                        
+                        <!-- Mobile Number -->
+                        <div class="form-group">
+                            <label class="form-label required" for="mobile">Mobile Number</label>
+                            <div class="input-icon-wrapper">
+                                <span class="input-icon">📱</span>
+                                <input 
+                                    type="tel" 
+                                    id="mobile" 
+                                    name="mobile"
+                                    class="neu-input" 
+                                    placeholder="10-digit mobile number"
+                                    autocomplete="tel"
+                                    maxlength="10"
+                                    pattern="[0-9]{10}"
+                                    inputmode="numeric"
+                                    required
+                                >
+                            </div>
+                            <div class="form-error" style="display: none;"></div>
+                            <div class="form-help">Enter 10-digit Indian mobile number</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 3: Terms -->
+                    <div class="form-section">
+                        <!-- Terms Checkbox -->
+                        <div class="form-group">
+                            <label class="terms-checkbox neu-checkbox-wrapper">
+                                <input 
+                                    type="checkbox" 
+                                    id="acceptTerms" 
+                                    name="acceptTerms"
+                                    required
+                                >
+                                <span class="neu-checkbox"></span>
+                                <span class="terms-text">
+                                    I agree to the 
+                                    <a href="#" target="_blank">Terms of Service</a> and 
+                                    <a href="#" target="_blank">Privacy Policy</a>. 
+                                    I understand that my profile is private and only visible to me and admins.
+                                </span>
+                            </label>
+                            <div class="form-error" id="termsError" style="display: none;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="form-group">
+                        <button type="submit" class="neu-button neu-button-primary w-100" id="submitBtn">
+                            <span>🚀</span>
+                            <span>Create Account</span>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Login Link -->
+                <div class="login-link-section">
+                    <p>Already have an account?</p>
+                    <a href="login.html" class="neu-button w-100">
+                        <span>👋</span>
+                        <span>Sign In Instead</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="text-center mt-lg">
+                <p class="text-muted fs-sm">
+                    Your data is securely stored and encrypted 🔐
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+    
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader" style="display: none;">
+        <div class="spinner"></div>
+        <p class="page-loader-text">Creating your account...</p>
+    </div>
+    
+    <!-- Scripts -->
+    <script type="module">
+        // Import required modules
+        import { 
+            auth, 
+            onAuthStateChanged 
+        } from './js/firebase-config.js';
+        
+        import { 
+            initRegistrationForm,
+            validateEmail,
+            validatePassword,
+            validateUsername,
+            validateMobile,
+            isUsernameAvailable,
+            createImagePreview,
+            showToast,
+            showFieldError,
+            clearFieldError,
+            showFieldStatus,
+            clearFieldStatus
+        } from './js/auth.js';
+        
+        import './js/theme.js';
+        
+        // Check if already logged in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // Initialize registration form
+        document.addEventListener('DOMContentLoaded', () => {
+            initRegistrationForm('registrationForm');
+            
+            // Additional custom handlers
+            setupPasswordToggles();
+            setupProfileImagePreview();
+            setupUsernameCheck();
+            setupMobileInput();
+            setupProgressIndicator();
+        });
+        
+        // Password visibility toggles
+        function setupPasswordToggles() {
+            document.querySelectorAll('.password-toggle').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.dataset.target;
+                    const input = document.getElementById(targetId);
+                    
+                    if (input) {
+                        const isPassword = input.type === 'password';
+                        input.type = isPassword ? 'text' : 'password';
+                        btn.textContent = isPassword ? '👁️‍🗨️' : '👁️';
+                    }
+                });
+            });
+        }
+        
+        // Profile image preview
+        function setupProfileImagePreview() {
+            const input = document.getElementById('profileImage');
+            const previewImg = document.getElementById('profilePreviewImage');
+            const placeholder = document.getElementById('profilePlaceholder');
+            const removeBtn = document.getElementById('removeProfileImage');
+            
+            if (input && previewImg && placeholder) {
+                input.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    
+                    if (file) {
+                        // Validate
+                        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                        const maxSize = 2 * 1024 * 1024; // 2MB
+                        
+                        if (!validTypes.includes(file.type)) {
+                            showToast('Please select a JPG, PNG, or WebP image', 'error');
+                            input.value = '';
+                            return;
+                        }
+                        
+                        if (file.size > maxSize) {
+                            showToast('Image must be less than 2MB', 'error');
+                            input.value = '';
+                            return;
+                        }
+                        
+                        try {
+                            const previewUrl = await createImagePreview(file);
+                            previewImg.src = previewUrl;
+                            previewImg.style.display = 'block';
+                            placeholder.style.display = 'none';
+                            removeBtn.classList.add('visible');
+                        } catch (error) {
+                            console.error('Preview error:', error);
+                            showToast('Failed to load image preview', 'error');
+                        }
+                    }
+                });
+                
+                // Remove button
+                removeBtn?.addEventListener('click', () => {
+                    input.value = '';
+                    previewImg.src = '';
+                    previewImg.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                    removeBtn.classList.remove('visible');
+                });
+            }
+        }
+        
+        // Username availability check
+        function setupUsernameCheck() {
+            const usernameInput = document.getElementById('username');
+            const statusEl = document.getElementById('usernameStatus');
+            let checkTimeout;
+            
+            if (usernameInput && statusEl) {
+                usernameInput.addEventListener('input', (e) => {
+                    clearTimeout(checkTimeout);
+                    
+                    const username = e.target.value.trim().toLowerCase();
+                    
+                    // Clear status
+                    statusEl.style.display = 'none';
+                    statusEl.className = 'field-status';
+                    usernameInput.classList.remove('success', 'error');
+                    
+                    if (username.length < 3) return;
+                    
+                    // Validate format first
+                    const validFormat = /^[a-zA-Z0-9_]{3,20}$/.test(username);
+                    if (!validFormat) {
+                        statusEl.textContent = '❌ Invalid format';
+                        statusEl.classList.add('error');
+                        statusEl.style.display = 'flex';
+                        usernameInput.classList.add('error');
+                        return;
+                    }
+                    
+                    // Check availability with debounce
+                    checkTimeout = setTimeout(async () => {
+                        statusEl.textContent = '⏳ Checking...';
+                        statusEl.classList.add('info');
+                        statusEl.style.display = 'flex';
+                        
+                        try {
+                            const available = await isUsernameAvailable(username);
+                            
+                            if (available) {
+                                statusEl.textContent = '✅ Username available';
+                                statusEl.className = 'field-status success';
+                                usernameInput.classList.remove('error');
+                                usernameInput.classList.add('success');
+                            } else {
+                                statusEl.textContent = '❌ Username taken';
+                                statusEl.className = 'field-status error';
+                                usernameInput.classList.remove('success');
+                                usernameInput.classList.add('error');
+                            }
+                            statusEl.style.display = 'flex';
+                        } catch (error) {
+                            statusEl.textContent = '⚠️ Could not verify';
+                            statusEl.className = 'field-status error';
+                            statusEl.style.display = 'flex';
+                        }
+                    }, 500);
+                });
+            }
+        }
+        
+        // Mobile number input formatting
+        function setupMobileInput() {
+            const mobileInput = document.getElementById('mobile');
+            
+            if (mobileInput) {
+                mobileInput.addEventListener('input', (e) => {
+                    // Remove non-digits
+                    let value = e.target.value.replace(/\D/g, '');
+                    // Limit to 10 digits
+                    value = value.substring(0, 10);
+                    e.target.value = value;
+                });
+                
+                mobileInput.addEventListener('keypress', (e) => {
+                    // Only allow digits
+                    if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        }
+        
+        // Progress indicator
+        function setupProgressIndicator() {
+            const form = document.getElementById('registrationForm');
+            const steps = document.querySelectorAll('.progress-step');
+            
+            if (form && steps.length > 0) {
+                // Update progress based on form completion
+                const checkProgress = () => {
+                    const email = document.getElementById('email')?.value;
+                    const password = document.getElementById('password')?.value;
+                    const displayName = document.getElementById('displayName')?.value;
+                    const username = document.getElementById('username')?.value;
+                    const gender = document.querySelector('input[name="gender"]:checked');
+                    const mobile = document.getElementById('mobile')?.value;
+                    const terms = document.getElementById('acceptTerms')?.checked;
+                    
+                    // Step 1: Account info
+                    if (email && password) {
+                        steps[0].classList.add('completed');
+                        steps[1].classList.add('active');
+                    } else {
+                        steps[0].classList.remove('completed');
+                        steps[1].classList.remove('active');
+                    }
+                    
+                    // Step 2: Profile info
+                    if (displayName && username && gender && mobile) {
+                        steps[1].classList.add('completed');
+                        steps[2].classList.add('active');
+                    } else {
+                        steps[1].classList.remove('completed');
+                        steps[2].classList.remove('active');
+                    }
+                    
+                    // Step 3: Terms
+                    if (terms) {
+                        steps[2].classList.add('completed');
+                    } else {
+                        steps[2].classList.remove('completed');
+                    }
+                };
+                
+                // Listen for changes
+                form.addEventListener('input', checkProgress);
+                form.addEventListener('change', checkProgress);
+            }
+        }
+    </script>
+    
+    <!-- Inline script for immediate theme application -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('studyhub_theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</body>
+</html>

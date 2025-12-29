@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Study Hub - Admin Panel">
+    <meta name="theme-color" content="#e0e5ec">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Prevent caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    
+    <title>Admin Panel - Study Hub</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    
+    <!-- Admin specific styles -->
+    <style>
+        /* Prevent FOUC */
+        html:not([data-theme]) {
+            visibility: hidden;
+        }
+        html[data-theme] {
+            visibility: visible;
+        }
+        
+        /* Admin page base */
+        body {
+            overflow-x: hidden;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        /* Recent Activity */
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        /* User table responsive */
+        .users-table-container {
+            overflow-x: auto;
+            margin: 0 calc(-1 * var(--space-lg));
+            padding: 0 var(--space-lg);
+        }
+        
+        /* Search and filters row */
+        .filters-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+            align-items: center;
+        }
+        
+        .filters-row .search-input {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filters-row .filter-select {
+            min-width: 150px;
+        }
+        
+        /* Chat management layout */
+        .chat-management-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: var(--space-lg);
+            height: calc(100vh - 200px);
+            min-height: 500px;
+        }
+        
+        @media (max-width: 1024px) {
+            .chat-management-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+        
+        .messages-panel {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--neu-shadow-md);
+            overflow: hidden;
+        }
+        
+        .messages-panel-header {
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 1px solid var(--divider-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .messages-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-md);
+        }
+        
+        .actions-panel {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--neu-shadow-md);
+            overflow: hidden;
+        }
+        
+        .actions-panel-header {
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 1px solid var(--divider-color);
+        }
+        
+        .actions-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-lg);
+        }
+        
+        .no-selection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: var(--text-tertiary);
+            padding: var(--space-xl);
+        }
+        
+        .no-selection-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-md);
+            opacity: 0.5;
+        }
+        
+        /* Admin message item */
+        .admin-msg-item {
+            display: flex;
+            gap: var(--space-sm);
+            padding: var(--space-sm);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .admin-msg-item:hover {
+            background: var(--bg-secondary);
+        }
+        
+        .admin-msg-item.selected {
+            background: var(--accent-primary-light);
+            box-shadow: var(--neu-shadow-sm);
+        }
+        
+        .admin-msg-item.pinned {
+            border-left: 3px solid var(--accent-primary);
+        }
+        
+        .admin-msg-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .admin-msg-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .admin-msg-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: 2px;
+        }
+        
+        .admin-msg-name {
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            color: var(--text-primary);
+        }
+        
+        .admin-msg-time {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+        }
+        
+        .admin-msg-text {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .admin-msg-image {
+            width: 60px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            margin-top: var(--space-xs);
+        }
+        
+        .admin-msg-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .admin-msg-item:hover .admin-msg-actions {
+            opacity: 1;
+        }
+        
+        /* Selected message preview */
+        .selected-msg-preview {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            margin-bottom: var(--space-lg);
+            border-left: 3px solid var(--accent-primary);
+        }
+        
+        .selected-msg-preview img {
+            max-width: 100%;
+            border-radius: var(--radius-sm);
+            margin-top: var(--space-sm);
+        }
+        
+        /* Action buttons grid */
+        .action-btns-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+        }
+        
+        /* Admin reply section */
+        .admin-reply-section {
+            margin-top: var(--space-lg);
+            padding-top: var(--space-lg);
+            border-top: 1px solid var(--divider-color);
+        }
+        
+        /* Archived message item */
+        .archived-item {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            border-left: 4px solid var(--error);
+        }
+        
+        .archived-item.spam {
+            border-left-color: var(--warning);
+        }
+        
+        .archived-item.manual {
+            border-left-color: var(--info);
+        }
+        
+        .archived-item.contact {
+            border-left-color: var(--other-color);
+        }
+        
+        .archived-content {
+            flex: 1;
+        }
+        
+        .archived-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            align-items: center;
+        }
+        
+        .archived-reason {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            text-transform: uppercase;
+        }
+        
+        .archived-reason.abusive {
+            background: var(--error-light);
+            color: var(--error);
+        }
+        
+        .archived-reason.spam {
+            background: var(--warning-light);
+            color: #b7791f;
+        }
+        
+        .archived-reason.contact {
+            background: rgba(156, 39, 176, 0.1);
+            color: var(--other-color);
+        }
+        
+        .archived-reason.url {
+            background: var(--info-light);
+            color: var(--info);
+        }
+        
+        .archived-reason.manual {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+        
+        .archived-text {
+            background: var(--bg-primary);
+            padding: var(--space-md);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-sm);
+            word-break: break-word;
+        }
+        
+        .archived-actions {
+            display: flex;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+        
+        /* Notification management */
+        .notif-form-container {
+            max-width: 600px;
+        }
+        
+        .notif-preview {
+            margin-top: var(--space-lg);
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+        
+        .notif-preview-label {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-md);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .notif-preview-bar {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-sm) var(--space-lg);
+            background: var(--accent-primary);
+            color: white;
+            border-radius: var(--radius-md);
+        }
+        
+        .notif-preview-bar.video { background: #e74c3c; }
+        .notif-preview-bar.lecture { background: var(--success); }
+        .notif-preview-bar.general { background: var(--warning); color: #333; }
+        .notif-preview-bar.update { background: var(--info); }
+        .notif-preview-bar.alert { background: var(--error); }
+        
+        /* Notification list */
+        .notif-list {
+            margin-top: var(--space-xl);
+        }
+        
+        .notif-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            transition: all 0.2s;
+        }
+        
+        .notif-item:hover {
+            box-shadow: var(--neu-shadow-sm);
+        }
+        
+        .notif-item.inactive {
+            opacity: 0.6;
+        }
+        
+        .notif-item-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .notif-item-icon.notes { background: var(--accent-primary-light); }
+        .notif-item-icon.video { background: var(--error-light); }
+        .notif-item-icon.lecture { background: var(--success-light); }
+        .notif-item-icon.general { background: var(--warning-light); }
+        .notif-item-icon.update { background: var(--info-light); }
+        .notif-item-icon.alert { background: var(--error-light); }
+        
+        .notif-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .notif-item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .notif-item-text {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .notif-item-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        /* Quick actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .quick-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-xl);
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--neu-shadow-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .quick-action:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--neu-shadow-lg);
+        }
+        
+        .quick-action-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: var(--space-md);
+        }
+        
+        .quick-action.primary .quick-action-icon {
+            background: var(--accent-primary-light);
+        }
+        
+        .quick-action.success .quick-action-icon {
+            background: var(--success-light);
+        }
+        
+        .quick-action.warning .quick-action-icon {
+            background: var(--warning-light);
+        }
+        
+        .quick-action.danger .quick-action-icon {
+            background: var(--error-light);
+        }
+        
+        .quick-action-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .quick-action-desc {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
+        }
+        
+        /* Mobile sidebar */
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .admin-sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .admin-main {
+                margin-left: 0;
+            }
+            
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 199;
+            }
+            
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+        
+        /* Page loader */
+        .admin-loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .admin-loader.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Loader -->
+    <div class="admin-loader" id="adminLoader">
+        <div class="spinner"></div>
+        <p class="text-secondary mt-lg">Loading Admin Panel...</p>
+    </div>
+    
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Admin Wrapper -->
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <!-- Sidebar Header -->
+            <div class="sidebar-header">
+                <div class="sidebar-logo">👑</div>
+                <div class="sidebar-brand">
+                    <h1 class="sidebar-title">Study Hub</h1>
+                    <p class="sidebar-subtitle">Admin Panel</p>
+                </div>
+            </div>
+            
+            <!-- Sidebar Navigation -->
+            <nav class="sidebar-nav">
+                <!-- Main Section -->
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-title">Main</div>
+                    
+                    <button class="sidebar-nav-item active" data-section="dashboard">
+                        <span class="sidebar-nav-icon">📊</span>
+                        <span class="sidebar-nav-text">Dashboard</span>
+                    </button>
+                    
+                    <button class="sidebar-nav-item" data-section="users">
+                        <span class="sidebar-nav-icon">👥</span>
+                        <span class="sidebar-nav-text">User Management</span>
+                        <span class="sidebar-nav-badge" id="usersCountBadge">0</span>
+                    </button>
+                </div>
+                
+                <!-- Chat Section -->
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-title">Chat</div>
+                    
+                    <button class="sidebar-nav-item" data-section="chat">
+                        <span class="sidebar-nav-icon">💬</span>
+                        <span class="sidebar-nav-text">Chat Management</span>
+                    </button>
+                    
+                    <button class="sidebar-nav-item" data-section="archived">
+                        <span class="sidebar-nav-icon">📁</span>
+                        <span class="sidebar-nav-text">Archived Messages</span>
+                        <span class="sidebar-nav-badge" id="archivedCountBadge">0</span>
+                    </button>
+                </div>
+                
+                <!-- Content Section -->
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-title">Content</div>
+                    
+                    <button class="sidebar-nav-item" data-section="notifications">
+                        <span class="sidebar-nav-icon">🔔</span>
+                        <span class="sidebar-nav-text">Notifications</span>
+                    </button>
+                </div>
+                
+                <!-- Other Section -->
+                <div class="sidebar-nav-section">
+                    <div class="sidebar-nav-title">Other</div>
+                    
+                    <a href="index.html" class="sidebar-nav-item">
+                        <span class="sidebar-nav-icon">💬</span>
+                        <span class="sidebar-nav-text">Go to Chat</span>
+                    </a>
+                    
+                    <button class="sidebar-nav-item" id="themeToggleSidebar">
+                        <span class="sidebar-nav-icon">🎨</span>
+                        <span class="sidebar-nav-text">Toggle Theme</span>
+                    </button>
+                </div>
+            </nav>
+            
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <img src="" alt="Admin" class="sidebar-user-avatar" id="sidebarAvatar">
+                    <div class="sidebar-user-info">
+                        <p class="sidebar-user-name" id="sidebarName">Admin</p>
+                        <p class="sidebar-user-role">Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Admin Header -->
+            <header class="admin-header">
+                <div class="admin-header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" type="button" title="Toggle Sidebar">
+                        ☰
+                    </button>
+                    <h1 class="admin-page-title" id="pageTitle">Dashboard</h1>
+                </div>
+                
+                <div class="admin-header-right">
+                    <!-- Search -->
+                    <div class="admin-search">
+                        <span class="admin-search-icon">🔍</span>
+                        <input 
+                            type="text" 
+                            class="admin-search-input" 
+                            placeholder="Search..."
+                            id="globalSearch"
+                        >
+                    </div>
+                    
+                    <!-- Theme Toggle -->
+                    <button class="theme-toggle neu-icon-button" title="Toggle theme" type="button">
+                        <span class="icon-sun">☀️</span>
+                        <span class="icon-moon">🌙</span>
+                    </button>
+                    
+                    <!-- Logout -->
+                    <button class="neu-button neu-button-sm logout-btn" type="button">
+                        <span>🚪</span>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Admin Content -->
+            <div class="admin-content">
+                <!-- ============================== -->
+                <!-- DASHBOARD SECTION -->
+                <!-- ============================== -->
+                <section id="dashboardSection">
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <div class="quick-action primary" data-section="users">
+                            <div class="quick-action-icon">👥</div>
+                            <div class="quick-action-title">Manage Users</div>
+                            <div class="quick-action-desc">View and manage all users</div>
+                        </div>
+                        <div class="quick-action success" data-section="chat">
+                            <div class="quick-action-icon">💬</div>
+                            <div class="quick-action-title">Chat Messages</div>
+                            <div class="quick-action-desc">Monitor live chat</div>
+                        </div>
+                        <div class="quick-action warning" data-section="archived">
+                            <div class="quick-action-icon">📁</div>
+                            <div class="quick-action-title">Archived</div>
+                            <div class="quick-action-desc">Review flagged messages</div>
+                        </div>
+                        <div class="quick-action danger" data-section="notifications">
+                            <div class="quick-action-icon">🔔</div>
+                            <div class="quick-action-title">Notifications</div>
+                            <div class="quick-action-desc">Manage announcements</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon primary">👥</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Total Users</div>
+                                <div class="stat-value" id="totalUsersCount">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon success">✅</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Active Users</div>
+                                <div class="stat-value" id="activeUsersCount">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon warning">🔇</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Muted Users</div>
+                                <div class="stat-value" id="mutedUsersCount">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon danger">⛔</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Banned Users</div>
+                                <div class="stat-value" id="bannedUsersCount">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon info">💬</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Messages Today</div>
+                                <div class="stat-value" id="totalMessagesCount">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon warning">📁</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Archived</div>
+                                <div class="stat-value" id="archivedMessagesCount">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h2 class="admin-panel-title">
+                                <span class="admin-panel-title-icon">📋</span>
+                                Recent Activity
+                            </h2>
+                            <button class="neu-button neu-button-sm" onclick="adminManager.loadRecentActivity()">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div class="activity-list" id="recentActivity">
+                                <!-- Activity items will be loaded here -->
+                                <div class="empty-state">
+                                    <span class="empty-state-icon">📭</span>
+                                    <p>Loading activity...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ============================== -->
+                <!-- USERS SECTION -->
+                <!-- ============================== -->
+                <section id="usersSection" style="display: none;">
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h2 class="admin-panel-title">
+                                <span class="admin-panel-title-icon">👥</span>
+                                All Users
+                            </h2>
+                        </div>
+                        <div class="admin-panel-body">
+                            <!-- Filters Row -->
+                            <div class="filters-row">
+                                <div class="input-icon-wrapper search-input">
+                                    <span class="input-icon">🔍</span>
+                                    <input 
+                                        type="text" 
+                                        class="neu-input" 
+                                        placeholder="Search by name, email, or mobile..."
+                                        id="userSearchInput"
+                                    >
+                                </div>
+                                <select class="neu-input neu-select filter-select" id="userStatusFilter">
+                                    <option value="all">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="muted">Muted</option>
+                                    <option value="banned">Banned</option>
+                                </select>
+                                <select class="neu-input neu-select filter-select" id="userRoleFilter">
+                                    <option value="all">All Roles</option>
+                                    <option value="user">Users</option>
+                                    <option value="admin">Admins</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Users Table -->
+                            <div class="users-table-container">
+                                <table class="users-table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Email</th>
+                                            <th>Mobile</th>
+                                            <th>Status</th>
+                                            <th>Role</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <!-- Users will be rendered here -->
+                                        <tr>
+                                            <td colspan="6" class="text-center p-xl">
+                                                <div class="spinner"></div>
+                                                <p class="mt-md text-secondary">Loading users...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Load More -->
+                            <div class="text-center mt-lg">
+                                <button class="neu-button" id="loadMoreUsersBtn" style="display: none;">
+                                    Load More Users
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ============================== -->
+                <!-- CHAT MANAGEMENT SECTION -->
+                <!-- ============================== -->
+                <section id="chatSection" style="display: none;">
+                    <div class="chat-management-layout">
+                        <!-- Messages Panel -->
+                        <div class="messages-panel">
+                            <div class="messages-panel-header">
+                                <h3 class="m-0">Live Messages</h3>
+                                <span class="badge badge-success" id="liveMessagesBadge">Live</span>
+                            </div>
+                            <div class="messages-panel-body" id="adminMessagesContainer">
+                                <!-- Messages will be rendered here -->
+                                <div class="empty-state">
+                                    <span class="empty-state-icon">💬</span>
+                                    <p>Loading messages...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions Panel -->
+                        <div class="actions-panel">
+                            <div class="actions-panel-header">
+                                <h3 class="m-0">Message Actions</h3>
+                            </div>
+                            <div class="actions-panel-body" id="messageActionsPanel">
+                                <div class="no-selection">
+                                    <span class="no-selection-icon">👆</span>
+                                    <p>Select a message to view actions</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ============================== -->
+                <!-- ARCHIVED MESSAGES SECTION -->
+                <!-- ============================== -->
+                <section id="archivedSection" style="display: none;">
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h2 class="admin-panel-title">
+                                <span class="admin-panel-title-icon">📁</span>
+                                Archived Messages
+                            </h2>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div id="archivedMessagesContainer">
+                                <!-- Archived messages will be rendered here -->
+                                <div class="empty-state">
+                                    <span class="empty-state-icon">📁</span>
+                                    <p>Loading archived messages...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ============================== -->
+                <!-- NOTIFICATIONS SECTION -->
+                <!-- ============================== -->
+                <section id="notificationsSection" style="display: none;">
+                    <div id="notificationsManagement">
+                        <!-- Notifications management will be rendered here -->
+                        <div class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h2 class="admin-panel-title">
+                                    <span class="admin-panel-title-icon">🔔</span>
+                                    Notifications
+                                </h2>
+                            </div>
+                            <div class="admin-panel-body">
+                                <div class="empty-state">
+                                    <span class="empty-state-icon">🔔</span>
+                                    <p>Loading notifications...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+    
+    <!-- Scripts -->
+    <script type="module">
+        // ==========================================
+        // IMPORTS
+        // ==========================================
+        import { 
+            auth, 
+            db,
+            onAuthStateChanged 
+        } from './js/firebase-config.js';
+        
+        import { 
+            getCurrentUser,
+            getCurrentUserData,
+            initLogoutButton,
+            showToast
+        } from './js/auth.js';
+        
+        import './js/theme.js';
+        import { toggleTheme } from './js/theme.js';
+        
+        import { adminManager } from './js/admin.js';
+        
+        // ==========================================
+        // DOM ELEMENTS
+        // ==========================================
+        const adminLoader = document.getElementById('adminLoader');
+        const adminSidebar = document.getElementById('adminSidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarAvatar = document.getElementById('sidebarAvatar');
+        const sidebarName = document.getElementById('sidebarName');
+        const themeToggleSidebar = document.getElementById('themeToggleSidebar');
+        
+        // ==========================================
+        // DEFAULT AVATARS
+        // ==========================================
+        const DEFAULT_AVATARS = {
+            male: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzRBOTBEMiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
+            female: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iI0VDNDA3QSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
+            other: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzlDMjdCMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4='
+        };
+        
+        // ==========================================
+        // AUTH CHECK
+        // ==========================================
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    // Get user data
+                    const userData = getCurrentUserData();
+                    
+                    // Wait for user data if not available
+                    if (!userData) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                    
+                    const currentUserData = getCurrentUserData();
+                    
+                    // Check if admin
+                    if (!currentUserData || currentUserData.role !== 'admin') {
+                        showToast('Access denied. Admin privileges required.', 'error');
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                        return;
+                    }
+                    
+                    // Update sidebar UI
+                    updateSidebarUI(currentUserData);
+                    
+                    // Initialize admin panel
+                    await adminManager.init();
+                    
+                    // Hide loader
+                    adminLoader.classList.add('hidden');
+                    
+                } catch (error) {
+                    console.error('Admin init error:', error);
+                    showToast('Error loading admin panel', 'error');
+                }
+            } else {
+                // Not logged in
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // ==========================================
+        // UPDATE SIDEBAR UI
+        // ==========================================
+        function updateSidebarUI(userData) {
+            if (sidebarAvatar) {
+                sidebarAvatar.src = userData.photoURL || DEFAULT_AVATARS[userData.gender] || DEFAULT_AVATARS.other;
+            }
+            
+            if (sidebarName) {
+                sidebarName.textContent = userData.displayName || 'Admin';
+            }
+        }
+        
+        // ==========================================
+        // SIDEBAR TOGGLE (Mobile)
+        // ==========================================
+        sidebarToggle?.addEventListener('click', () => {
+            adminSidebar?.classList.toggle('active');
+            sidebarOverlay?.classList.toggle('active');
+        });
+        
+        sidebarOverlay?.addEventListener('click', () => {
+            adminSidebar?.classList.remove('active');
+            sidebarOverlay?.classList.remove('active');
+        });
+        
+        // ==========================================
+        // THEME TOGGLE
+        // ==========================================
+        themeToggleSidebar?.addEventListener('click', () => {
+            toggleTheme();
+        });
+        
+        // ==========================================
+        // QUICK ACTION CLICKS
+        // ==========================================
+        document.querySelectorAll('.quick-action').forEach(action => {
+            action.addEventListener('click', () => {
+                const section = action.dataset.section;
+                if (section) {
+                    adminManager.navigateToSection(section);
+                }
+            });
+        });
+        
+        // ==========================================
+        // LOGOUT
+        // ==========================================
+        initLogoutButton('.logout-btn');
+        
+        // ==========================================
+        // KEYBOARD SHORTCUTS
+        // ==========================================
+        document.addEventListener('keydown', (e) => {
+            // Escape to close sidebar on mobile
+            if (e.key === 'Escape') {
+                adminSidebar?.classList.remove('active');
+                sidebarOverlay?.classList.remove('active');
+            }
+            
+            // Ctrl/Cmd + K for search focus
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('globalSearch')?.focus();
+            }
+        });
+        
+        // ==========================================
+        // GLOBAL SEARCH
+        // ==========================================
+        const globalSearch = document.getElementById('globalSearch');
+        let searchTimeout;
+        
+        globalSearch?.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim().toLowerCase();
+            
+            searchTimeout = setTimeout(() => {
+                if (query.length >= 2) {
+                    // Perform search based on current section
+                    const currentSection = adminManager.state.currentSection;
+                    
+                    if (currentSection === 'users') {
+                        const userSearchInput = document.getElementById('userSearchInput');
+                        if (userSearchInput) {
+                            userSearchInput.value = query;
+                            userSearchInput.dispatchEvent(new Event('input'));
+                        }
+                    }
+                }
+            }, 300);
+        });
+        
+        // ==========================================
+        // MAKE ADMIN MANAGER GLOBALLY ACCESSIBLE
+        // ==========================================
+        window.adminManager = adminManager;
+        
+        console.log('👑 Admin Panel Loaded');
+    </script>
+    
+    <!-- Immediate theme application -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('studyhub_theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</body>
+</html>

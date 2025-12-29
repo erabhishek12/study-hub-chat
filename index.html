@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Study Hub - Live Doubt Chat System">
+    <meta name="theme-color" content="#e0e5ec">
+    
+    <!-- Prevent caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    
+    <title>Study Hub - Live Doubt Chat</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chat.css">
+    
+    <!-- Critical inline styles -->
+    <style>
+        /* Prevent FOUC */
+        html:not([data-theme]) {
+            visibility: hidden;
+        }
+        html[data-theme] {
+            visibility: visible;
+        }
+        
+        /* Chat page specific overrides */
+        body {
+            overflow: hidden;
+        }
+        
+        /* Ensure full height */
+        html, body {
+            height: 100%;
+        }
+        
+        /* Image input hidden */
+        #imageInput {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* User menu dropdown styling */
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-menu-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 200px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-shadow-lg);
+            padding: var(--space-sm);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+        
+        .user-menu.active .user-menu-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .user-menu-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .user-menu-item:hover {
+            background: var(--accent-primary-light);
+            color: var(--accent-primary);
+        }
+        
+        .user-menu-item.danger {
+            color: var(--error);
+        }
+        
+        .user-menu-item.danger:hover {
+            background: var(--error-light);
+        }
+        
+        .user-menu-divider {
+            height: 1px;
+            background: var(--divider-color);
+            margin: var(--space-sm) 0;
+        }
+        
+        /* Online indicator */
+        .online-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+        }
+        
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.9); }
+        }
+        
+        /* Notification bell */
+        .notification-bell {
+            position: relative;
+        }
+        
+        .notification-bell-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background: var(--error);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg-primary);
+        }
+        
+        .notification-bell-badge:empty,
+        .notification-bell-badge.hidden {
+            display: none;
+        }
+        
+        /* Chat input footer */
+        .chat-input-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-xs) var(--space-md);
+            border-top: 1px solid var(--divider-color);
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+        }
+        
+        .input-tips {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .input-tip {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        @media (max-width: 600px) {
+            .input-tips {
+                display: none;
+            }
+        }
+        
+        /* Warning popup */
+        .warning-popup {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--warning);
+            color: #333;
+            padding: var(--space-md) var(--space-xl);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 8px 24px rgba(255, 165, 2, 0.4);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        .warning-popup.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .warning-popup.error {
+            background: var(--error);
+            color: white;
+            box-shadow: 0 8px 24px rgba(255, 71, 87, 0.4);
+        }
+        
+        /* Connection status */
+        .connection-status {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--warning);
+            color: #333;
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-sm);
+            display: none;
+            align-items: center;
+            gap: var(--space-sm);
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .connection-status.offline {
+            display: flex;
+            background: var(--error);
+            color: white;
+        }
+        
+        .connection-status.reconnecting {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">
+        <span class="spinner-circle spinner-sm"></span>
+        <span>Reconnecting...</span>
+    </div>
+    
+    <!-- Main Chat Wrapper -->
+    <div class="chat-wrapper screenshot-protected">
+        <!-- Chat Header -->
+        <header class="chat-header">
+            <div class="chat-header-left">
+                <!-- Logo -->
+                <a href="index.html" class="chat-header-logo" title="Study Hub">
+                    📚
+                </a>
+                
+                <!-- Info -->
+                <div class="chat-header-info">
+                    <h1 class="chat-header-title">Study<span>Hub</span></h1>
+                    <div class="chat-header-subtitle">
+                        <span class="online-indicator">
+                            <span class="online-dot"></span>
+                            <span id="onlineCount">Live Chat</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-header-right">
+                <!-- Notification Bell -->
+                <button class="theme-toggle neu-icon-button notification-bell" 
+                        id="notificationBell"
+                        title="Notifications"
+                        type="button">
+                    <span>🔔</span>
+                    <span class="notification-bell-badge hidden" id="notificationBadge"></span>
+                </button>
+                
+                <!-- Theme Toggle -->
+                <button class="theme-toggle neu-icon-button" 
+                        aria-label="Toggle theme" 
+                        title="Toggle theme"
+                        type="button">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </button>
+                
+                <!-- User Menu -->
+                <div class="user-menu" id="userMenu">
+                    <button class="user-menu-trigger" type="button" id="userMenuTrigger">
+                        <img 
+                            src="" 
+                            alt="Profile" 
+                            class="user-menu-avatar" 
+                            id="headerAvatar"
+                        >
+                        <span class="user-menu-name" id="headerUsername">Loading...</span>
+                        <span class="user-menu-arrow">▼</span>
+                    </button>
+                    
+                    <div class="user-menu-dropdown">
+                        <a href="profile.html" class="user-menu-item">
+                            <span>👤</span>
+                            <span>My Profile</span>
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <button class="user-menu-item" id="themeToggleMenu" type="button">
+                            <span>🎨</span>
+                            <span>Toggle Theme</span>
+                        </button>
+                        <div class="user-menu-divider"></div>
+                        <button class="user-menu-item danger logout-btn" type="button">
+                            <span>🚪</span>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <!-- Pinned Messages Section -->
+            <div class="pinned-messages collapsed" id="pinnedMessages" style="display: none;">
+                <div class="pinned-header">
+                    <div class="pinned-header-left">
+                        <span class="pinned-icon">📌</span>
+                        <span>Pinned Messages</span>
+                        <span class="pinned-count" id="pinnedCount">0</span>
+                    </div>
+                    <span class="pinned-toggle-icon">▼</span>
+                </div>
+                <div class="pinned-messages-list" id="pinnedMessagesList">
+                    <!-- Pinned messages will be rendered here -->
+                </div>
+            </div>
+            
+            <!-- Main Chat Area -->
+            <div class="chat-main">
+                <!-- Messages Container -->
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Loading State -->
+                    <div class="chat-loading" id="chatLoading">
+                        <div class="message-skeleton">
+                            <div class="skeleton message-skeleton-avatar"></div>
+                            <div class="message-skeleton-content">
+                                <div class="skeleton message-skeleton-name"></div>
+                                <div class="skeleton message-skeleton-text"></div>
+                            </div>
+                        </div>
+                        <div class="message-skeleton sent">
+                            <div class="skeleton message-skeleton-avatar"></div>
+                            <div class="message-skeleton-content">
+                                <div class="skeleton message-skeleton-name"></div>
+                                <div class="skeleton message-skeleton-text"></div>
+                            </div>
+                        </div>
+                        <div class="message-skeleton">
+                            <div class="skeleton message-skeleton-avatar"></div>
+                            <div class="message-skeleton-content">
+                                <div class="skeleton message-skeleton-name"></div>
+                                <div class="skeleton message-skeleton-text"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div class="chat-empty" id="chatEmpty" style="display: none;">
+                        <span class="chat-empty-icon">💬</span>
+                        <h3 class="chat-empty-title">No messages yet</h3>
+                        <p class="chat-empty-text">Be the first to send a message and start the conversation!</p>
+                    </div>
+                    
+                    <!-- Messages will be rendered here -->
+                </div>
+                
+                <!-- Scroll to Bottom Button -->
+                <button class="scroll-to-bottom" id="scrollToBottom" type="button" title="Scroll to bottom">
+                    <span>↓</span>
+                    <span class="new-message-indicator" id="newMessageIndicator" style="display: none;">0</span>
+                </button>
+            </div>
+            
+            <!-- Restricted State (for muted/banned users) -->
+            <div class="chat-restricted" id="chatRestricted" style="display: none;">
+                <!-- Filled dynamically -->
+            </div>
+            
+            <!-- Image Preview Container (before sending) -->
+            <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                <div class="image-preview-wrapper">
+                    <img src="" alt="Preview" class="image-preview-img" id="imagePreviewImg">
+                    <button class="image-preview-remove" id="removeImageBtn" type="button" title="Remove image">✕</button>
+                </div>
+            </div>
+            
+            <!-- Chat Input Area -->
+            <div class="chat-input-container" id="chatInputContainer">
+                <div class="chat-input-wrapper">
+                    <!-- Attach/Image Button -->
+                    <button class="chat-attach-btn" id="attachBtn" type="button" title="Attach image">
+                        📷
+                    </button>
+                    <input 
+                        type="file" 
+                        id="imageInput" 
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                    >
+                    
+                    <!-- Input Field -->
+                    <div class="chat-input-field">
+                        <textarea 
+                            class="chat-input" 
+                            id="messageInput"
+                            placeholder="Type your message..."
+                            rows="1"
+                            maxlength="500"
+                        ></textarea>
+                        <div class="chat-input-footer">
+                            <div class="input-tips">
+                                <span class="input-tip">
+                                    <span>↵</span> Send
+                                </span>
+                                <span class="input-tip">
+                                    <span>⇧↵</span> New line
+                                </span>
+                            </div>
+                            <span class="char-counter" id="charCounter">0/500</span>
+                        </div>
+                        
+                        <!-- Cooldown Overlay -->
+                        <div class="cooldown-overlay" id="cooldownOverlay" style="display: none;">
+                            <span>⏳</span>
+                            <span>Wait</span>
+                            <span class="cooldown-timer" id="cooldownTimer">5s</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Send Button -->
+                    <button class="chat-send-btn" id="sendBtn" type="button" title="Send message">
+                        <span>➤</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Image Lightbox -->
+    <div class="lightbox-overlay" id="lightboxOverlay">
+        <button class="lightbox-close" id="lightboxClose" type="button">✕</button>
+        <img src="" alt="Full size image" class="lightbox-image" id="lightboxImage">
+    </div>
+    
+    <!-- Warning Popup -->
+    <div class="warning-popup" id="warningPopup">
+        <span class="warning-popup-icon">⚠️</span>
+        <span class="warning-popup-message"></span>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+    
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="spinner"></div>
+        <p class="page-loader-text">Loading Study Hub...</p>
+    </div>
+    
+    <!-- Scripts -->
+    <script type="module">
+        // ==========================================
+        // IMPORTS
+        // ==========================================
+        import { 
+            auth, 
+            db,
+            onAuthStateChanged 
+        } from './js/firebase-config.js';
+        
+        import { 
+            initAuthObserver,
+            initLogoutButton,
+            getCurrentUser,
+            getCurrentUserData,
+            refreshUserData,
+            isMuted,
+            isBanned,
+            getMuteEndTime,
+            showToast
+        } from './js/auth.js';
+        
+        import './js/theme.js';
+        import { toggleTheme } from './js/theme.js';
+        
+        import './js/security.js';
+        
+        import { notificationManager } from './js/notifications.js';
+        
+        import { chatManager, CHAT_CONFIG } from './js/chat.js';
+        
+        // ==========================================
+        // DOM ELEMENTS
+        // ==========================================
+        const pageLoader = document.getElementById('pageLoader');
+        const userMenu = document.getElementById('userMenu');
+        const userMenuTrigger = document.getElementById('userMenuTrigger');
+        const headerAvatar = document.getElementById('headerAvatar');
+        const headerUsername = document.getElementById('headerUsername');
+        const themeToggleMenu = document.getElementById('themeToggleMenu');
+        const notificationBell = document.getElementById('notificationBell');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        // ==========================================
+        // DEFAULT AVATARS
+        // ==========================================
+        const DEFAULT_AVATARS = {
+            male: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzRBOTBEMiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
+            female: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iI0VDNDA3QSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
+            other: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzlDMjdCMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE4IiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTUwIDU1YzIwIDAgMzAgMTUgMzAgMzB2MTVIMjBWODVjMC0xNSAxMC0zMCAzMC0zMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4='
+        };
+        
+        // ==========================================
+        // AUTHENTICATION HANDLER
+        // ==========================================
+        initAuthObserver({
+            requireAuth: true,
+            redirectTo: 'login.html',
+            onAuthenticated: async (user, userData) => {
+                console.log('✅ User authenticated:', user.uid);
+                
+                // Update header UI
+                updateHeaderUI(userData);
+                
+                // Initialize chat
+                await chatManager.init();
+                
+                // Hide loader
+                pageLoader.style.display = 'none';
+                
+                // Check user status
+                if (isBanned()) {
+                    showBannedMessage(userData.banReason);
+                } else if (isMuted()) {
+                    showMutedMessage();
+                }
+            },
+            onUnauthenticated: () => {
+                console.log('❌ User not authenticated');
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // ==========================================
+        // UPDATE HEADER UI
+        // ==========================================
+        function updateHeaderUI(userData) {
+            if (headerAvatar) {
+                headerAvatar.src = userData.photoURL || DEFAULT_AVATARS[userData.gender] || DEFAULT_AVATARS.other;
+                headerAvatar.alt = userData.displayName;
+            }
+            
+            if (headerUsername) {
+                headerUsername.textContent = userData.displayName || 'User';
+            }
+        }
+        
+        // ==========================================
+        // USER MENU TOGGLE
+        // ==========================================
+        userMenuTrigger?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenu.classList.toggle('active');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userMenu?.contains(e.target)) {
+                userMenu?.classList.remove('active');
+            }
+        });
+        
+        // Close menu on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                userMenu?.classList.remove('active');
+            }
+        });
+        
+        // ==========================================
+        // THEME TOGGLE FROM MENU
+        // ==========================================
+        themeToggleMenu?.addEventListener('click', () => {
+            toggleTheme();
+            userMenu?.classList.remove('active');
+        });
+        
+        // ==========================================
+        // LOGOUT HANDLER
+        // ==========================================
+        initLogoutButton('.logout-btn');
+        
+        // ==========================================
+        // NOTIFICATION BELL
+        // ==========================================
+        notificationBell?.addEventListener('click', () => {
+            // Toggle notification visibility or show notification panel
+            const notifications = notificationManager.getNotifications();
+            
+            if (notifications.length > 0) {
+                if (notificationManager.isVisible) {
+                    notificationManager.hide();
+                } else {
+                    notificationManager.showNotifications();
+                }
+            } else {
+                showToast('No new notifications', 'info');
+            }
+        });
+        
+        // Update notification badge
+        notificationManager.addListener((event, data) => {
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                const count = notificationManager.getNotifications().length;
+                if (count > 0) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        });
+        
+        // ==========================================
+        // CONNECTION STATUS
+        // ==========================================
+        window.addEventListener('online', () => {
+            connectionStatus.classList.remove('offline', 'reconnecting');
+            showToast('Connection restored', 'success');
+        });
+        
+        window.addEventListener('offline', () => {
+            connectionStatus.classList.add('offline');
+            connectionStatus.innerHTML = '<span>⚠️</span><span>No internet connection</span>';
+        });
+        
+        // ==========================================
+        // BANNED/MUTED MESSAGE HELPERS
+        // ==========================================
+        function showBannedMessage(reason) {
+            const restricted = document.getElementById('chatRestricted');
+            const inputContainer = document.getElementById('chatInputContainer');
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            if (restricted) {
+                restricted.style.display = 'flex';
+                restricted.innerHTML = `
+                    <div class="chat-restricted-card">
+                        <span class="chat-restricted-icon">⛔</span>
+                        <h3 class="chat-restricted-title">Account Banned</h3>
+                        <p class="chat-restricted-message">
+                            ${reason || 'Violation of community guidelines'}
+                        </p>
+                        <p class="chat-restricted-time">
+                            Contact support if you believe this is an error.
+                        </p>
+                    </div>
+                `;
+            }
+            
+            if (inputContainer) inputContainer.style.display = 'none';
+            if (messagesContainer) messagesContainer.style.display = 'none';
+        }
+        
+        function showMutedMessage() {
+            const muteEndTime = getMuteEndTime();
+            if (!muteEndTime) return;
+            
+            const restricted = document.getElementById('chatRestricted');
+            const inputContainer = document.getElementById('chatInputContainer');
+            
+            if (restricted) {
+                restricted.style.display = 'flex';
+                updateMuteTimer(muteEndTime);
+            }
+            
+            if (inputContainer) inputContainer.style.display = 'none';
+        }
+        
+        function updateMuteTimer(endTime) {
+            const restricted = document.getElementById('chatRestricted');
+            if (!restricted) return;
+            
+            const updateTimer = () => {
+                const now = new Date();
+                const diff = endTime - now;
+                
+                if (diff <= 0) {
+                    // Mute expired
+                    refreshUserData().then(() => {
+                        if (!isMuted()) {
+                            restricted.style.display = 'none';
+                            document.getElementById('chatInputContainer').style.display = 'block';
+                            showToast('You can now send messages again!', 'success');
+                        }
+                    });
+                    return;
+                }
+                
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                let timeStr = '';
+                if (hours > 0) timeStr = `${hours}h ${minutes}m`;
+                else if (minutes > 0) timeStr = `${minutes}m ${seconds}s`;
+                else timeStr = `${seconds}s`;
+                
+                restricted.innerHTML = `
+                    <div class="chat-restricted-card">
+                        <span class="chat-restricted-icon">🔇</span>
+                        <h3 class="chat-restricted-title">You are muted</h3>
+                        <p class="chat-restricted-message">
+                            You cannot send messages at this time.
+                        </p>
+                        <p class="chat-restricted-time">
+                            Time remaining: ${timeStr}
+                        </p>
+                    </div>
+                `;
+                
+                setTimeout(updateTimer, 1000);
+            };
+            
+            updateTimer();
+        }
+        
+        // ==========================================
+        // KEYBOARD SHORTCUTS
+        // ==========================================
+        document.addEventListener('keydown', (e) => {
+            // Focus message input with /
+            if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+                const messageInput = document.getElementById('messageInput');
+                if (document.activeElement !== messageInput) {
+                    e.preventDefault();
+                    messageInput?.focus();
+                }
+            }
+            
+            // Scroll to bottom with End
+            if (e.key === 'End') {
+                chatManager.scrollToBottom(true);
+            }
+        });
+        
+        // ==========================================
+        // VISIBILITY CHANGE - Refresh data
+        // ==========================================
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // Page became visible, refresh user data
+                refreshUserData().then((userData) => {
+                    if (userData) {
+                        updateHeaderUI(userData);
+                        
+                        if (isBanned()) {
+                            showBannedMessage(userData.banReason);
+                        } else if (isMuted()) {
+                            showMutedMessage();
+                        } else {
+                            // Clear any restrictions
+                            const restricted = document.getElementById('chatRestricted');
+                            const inputContainer = document.getElementById('chatInputContainer');
+                            
+                            if (restricted) restricted.style.display = 'none';
+                            if (inputContainer) inputContainer.style.display = 'block';
+                        }
+                    }
+                });
+            }
+        });
+        
+        // ==========================================
+        // MAKE CHAT MANAGER GLOBALLY ACCESSIBLE
+        // ==========================================
+        window.chatManager = chatManager;
+        
+        console.log('📚 Study Hub Chat Loaded');
+    </script>
+    
+    <!-- Immediate theme application -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('studyhub_theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</body>
+</html>
